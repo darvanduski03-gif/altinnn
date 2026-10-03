@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" href="data:,">
+    
+    <title>ALTIN • سیستەمی کڕین و فرۆشتن | Cloudflare Edition</title>
+    
+    <!-- کتێبخانەیا ئێکسڵ -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root{--bg:#f4f5f7;--card:#fff;--text:#17191d;--muted:#737982;--line:#e5e7eb;--gold:#b58a35;--danger:#c53b3b;--ok:#25855a}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+        body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+        button,input,select{font:inherit;outline:none;}
+        button{cursor:pointer;border:0;}
+        
+        #loginScreen { position:fixed; inset:0; background:#15171b; display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+        .login-box { background:#fff; padding:40px 30px; border-radius:20px; width:100%; max-width:400px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.25); }
+        .login-box h1 { color:var(--gold); font-size:32px; margin:0 0 5px 0; font-weight:900; letter-spacing:1px; }
+        .login-box p { color:var(--muted); font-size:14px; margin-bottom:25px; }
+        .login-box input { width:100%; padding:14px; margin-bottom:15px; border:1px solid var(--line); border-radius:12px; font-size:15px; text-align:left; direction:ltr; }
+        .login-box input:focus { border-color:var(--gold); }
+        .login-box button { width:100%; padding:14px; background:var(--gold); color:#fff; font-size:16px; font-weight:bold; border-radius:12px; margin-top:10px; transition:opacity 0.2s; }
+        .login-box button:active { opacity:0.8; }
+        #loginError { color:var(--danger); font-size:13px; margin-top:15px; display:none; font-weight:600; background:#fff0f0; padding:10px; border-radius:8px; }
+
+        .app{display:flex;min-height:100vh;flex-direction:row;}
+        .side{width:250px;background:#15171b;color:#fff;padding:20px 14px;position:fixed;right:0;top:0;bottom:0;z-index:40;overflow-y:auto;-webkit-overflow-scrolling:touch; display:flex; flex-direction:column;}
+        .brand{font-size:26px;font-weight:800;color:#d8b25d;padding:10px 10px 24px;letter-spacing:1px;}
+        .nav{flex:1;}
+        .nav button{width:100%;background:transparent;color:#cbd5e1;text-align:right;padding:14px 14px;border-radius:12px;margin:4px 0;font-size:14px;font-weight:500;transition:all 0.2s;}
+        .nav button.active,.nav button:hover{background:#262a30;color:#fff;}
+        .logout-btn { background:#c53b3b20 !important; color:#ef4444 !important; margin-top:20px !important; }
+        .logout-btn:hover { background:#ef4444 !important; color:#fff !important; }
+        
+        .main{margin-right:250px;width:calc(100% - 250px);padding:24px;max-width:1400px;min-height:100vh;padding-bottom:80px;}
+        .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .top h1{margin:0;font-size:24px;font-weight:700;}
+        .top small{color:var(--muted);}
+        
+        .cards{display:grid;grid-template-columns:repeat(7,1fr);gap:14px;margin-bottom:18px;}
+        .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+        .card small{color:var(--muted);font-size:12px;}
+        .card strong{display:block;font-size:20px;margin-top:6px;}
+        
+        .grid{display:grid;grid-template-columns:1fr 1.6fr;gap:18px;}
+        .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+        .panel h2{font-size:18px;margin:0 0 16px;font-weight:700;}
+        
+        .formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+        label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px;font-weight:600;}
+        input,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:15px;color:var(--text);-webkit-appearance:none;}
+        input:focus,select:focus{border-color:var(--gold);}
+        
+        button.primary{background:#17191d;color:#fff;padding:14px 20px;border-radius:12px;margin-top:16px;font-weight:600;font-size:15px;width:100%;transition:opacity 0.2s;}
+        button.primary:active{opacity:0.8;}
+        .gold{background:var(--gold)!important;}
+        .danger{background:#fff0f0!important;color:var(--danger)!important;}
+        
+        .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;}
+        table{width:100%;border-collapse:collapse;font-size:14px;}
+        th,td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;}
+        th{font-weight:600;color:var(--muted);background:#fafafa;}
+        
+        .badge{padding:5px 10px;border-radius:20px;font-size:12px;background:#eef7f1;color:var(--ok);font-weight:600;}
+        .low{background:#fff3e5;color:#a75c00;}
+        .btn{padding:8px 12px;border-radius:10px;background:#f0f1f3;font-weight:500;font-size:13px;transition:background 0.2s; border:none; cursor:pointer;}
+        .btn:active{background:#e2e4e9;}
+        .empty{text-align:center;padding:35px;color:var(--muted);font-size:14px;}
+        .hidden{display:none;}
+        .search{max-width:300px;font-size:14px;padding:10px 14px;width:100%;}
+        .reportgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+        .setting{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);font-size:15px;}
+
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+        .modal-box{background:#fff;border-radius:20px;width:100%;max-width:750px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:40px;box-shadow:0 20px 40px rgba(0,0,0,0.15);}
+
+        @page { size: A4; margin: 15mm; }
+        @media print {
+            body { background: #fff; color: #000; margin: 0; padding: 0; }
+            .side, .top, .primary, .btn, button, input, select, .no-print, .nav, #loginScreen { display: none !important; }
+            .main { display: none !important; }
+            #modalContainer { display: block !important; position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; }
+            .modal-overlay { position: absolute; background: none; padding: 0; inset: auto; display: block; }
+            .modal-box { 
+                box-shadow: none; max-width: 100% !important; width: 100% !important; height: 100% !important; min-height: 250mm;
+                padding: 10mm !important; border: none; overflow: visible; margin: 0; display: flex; flex-direction: column; justify-content: space-between;
+            }
+            .invoice-print-area { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            table { font-size: 15px; width: 100%; }
+            th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color: #000; }
+            th, td { border-bottom: 1px solid #ccc; padding: 14px 10px; }
+        }
+
+        @media(max-width:1100px){.cards, .reportgrid{grid-template-columns:repeat(3,1fr);}}
+        @media(max-width:850px){
+            .side{position:fixed;bottom:0;top:auto;right:0;left:0;width:100%;height:68px;padding:8px 12px;background:#15171b;display:flex;flex-direction:row;align-items:center;border-top:1px solid #2a2e37;}
+            .brand{display:none;}
+            .nav{display:flex;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;padding:0;}
+            .nav button{min-width:75px;padding:10px 8px;font-size:11px;text-align:center;margin:0;border-radius:8px;white-space:nowrap;}
+            .logout-btn { margin-top:0 !important; }
+            .main{margin:0;width:100%;padding:14px;padding-bottom:90px;}
+            .cards, .reportgrid{grid-template-columns:repeat(2,1fr);gap:10px;}
+            .grid{grid-template-columns:1fr;}
+            .top{flex-direction:column;align-items:flex-start;gap:8px;}
+            .formgrid{grid-template-columns:1fr;}
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>ALTIN</h1>
+            <p>سیستەمی ئۆنلاین (Cloudflare Engine)</p>
+            <form onsubmit="event.preventDefault(); handleLogin();">
+                <input id="loginUsername" type="text" placeholder="ناوی بەکارهێنەر" autocomplete="username">
+                <input id="loginPassword" type="password" placeholder="وشەی نهێنی" autocomplete="current-password">
+                <button type="submit">چوونە ژوورەوە</button>
+            </form>
+            <div id="loginError">ناوی بەکارهێنەر یان وشەی نهێنی هەڵەیە!</div>
+        </div>
+    </div>
+
+    <div class="app" id="mainApp" style="display:none;">
+        <aside class="side">
+            <div class="brand">ALTIN</div>
+            <div class="nav">
+                <button class="active" onclick="showPage('dashboard',this)">🏠 داشبۆرد</button>
+                <button onclick="showPage('sales',this)">🛒 فرۆشتن</button>
+                <button onclick="showPage('purchases',this)">📥 کڕین</button>
+                <button onclick="showPage('returns',this)">🔄 مرجوعات</button>
+                <button onclick="showPage('stock',this)">📦 کۆگا</button>
+                <button onclick="showPage('expenses',this)">💸 خەرجی</button>
+                <button onclick="showPage('customers',this)">👤 کڕیاران و قەرز</button>
+                <button onclick="showPage('reports',this)">📊 ڕاپۆرت</button>
+                <button onclick="showPage('settings',this)">⚙ ڕێکخستن</button>
+                <button class="logout-btn" onclick="handleLogout()">🚪 دەرچوون</button>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="top">
+                <div>
+                    <h1 id="pageTitle">داشبۆرد</h1>
+                    <small>سیستەمی ئۆنلاین بۆ بەڕێوەبردنی کۆگا و فرۆشتن • ALTIN Cloudflare</small>
+                </div>
+                <div id="today" style="font-size:13px; font-weight:600; background:#fff; padding:8px 12px; border-radius:10px; border:1px solid var(--line);"></div>
+            </div>
+
+            <section id="dashboard" class="page">
+                <div class="cards">
+                    <div class="card"><small>کۆی فرۆشتن</small><strong id="dSales">0 د.ع</strong></div>
+                    <div class="card"><small>قازانجی خام</small><strong id="dGross">0 د.ع</strong></div>
+                    <div class="card"><small>کۆی مرجوعات</small><strong id="dReturns" style="color:var(--danger)">0 د.ع</strong></div>
+                    <div class="card"><small>خەرجی گشتی</small><strong id="dExpenses">0 د.ع</strong></div>
+                    <div class="card"><small>قازانجی پاک</small><strong id="dNet">0 د.ع</strong></div>
+                    <div class="card"><small>کۆی قەرزەکان</small><strong id="dDebt" style="color:#c05621;">0 د.ع</strong></div>
+                    <div class="card"><small>کۆی کاڵا لە کۆگا</small><strong id="dProducts">0</strong></div>
+                </div>
+                <div class="grid">
+                    <div class="panel">
+                        <h2>⚡ کردارە خێراکان</h2>
+                        <button class="primary mb-2 text-right" onclick="go('sales')">+ تۆمارکردنی فرۆشتن</button>
+                        <button class="primary gold mb-2 text-right" onclick="go('purchases')">+ تۆمارکردنی کڕین</button>
+                        <button class="primary danger mb-2 text-right text-white" onclick="go('returns')">+ گەڕاندنەوەی کاڵا</button>
+                        <button class="primary text-right" onclick="go('stock')">+ زیادکردنی کاڵا</button>
+                    </div>
+                    <div class="panel">
+                        <h2>📉 کاڵاکانی نزیک لە تەواوبوون</h2>
+                        <div id="lowStock"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sales" class="page hidden">
+                <div style="display:flex; gap:8px; margin-bottom:15px; overflow-x:auto; padding-bottom:5px;" id="cartTabsContainer"></div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h2 id="currentCartTitle" style="margin:0;">🛒 تۆمارکردنی فرۆشتن (سەبەتەی ١)</h2>
+                        <button class="btn" style="background:var(--gold); color:#fff; font-weight:bold;" onclick="addNewCart()">+ کردنەوەی سەبەتەیەکی نوێ</button>
+                    </div>
+                    <div class="formgrid">
+                        <div><label>🔍 گەڕان بەدوای کاڵا</label><input id="saleSearchInput" placeholder="ناو یان کۆد بنووسە..." oninput="addOptions()"></div>
+                        <div><label>📦 هەڵبژاردنی کاڵا</label><select id="saleProduct" onchange="updateSaleMax()"></select></div>
+                        <div><label>ژمارە (دانە)</label><input id="saleQty" type="number" pattern="[0-9]*" inputmode="numeric" min="1" value="1"></div>
+                        <div><label>نرخی فرۆشتن بۆ یەک دانە (د.ع)</label><input id="salePrice" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                    </div>
+                    <button class="btn gold" style="margin-top:14px; width:100%; padding:12px; color:#fff; font-weight:bold;" onclick="addToCart()">+ زیادکردن بۆ سەبەتەی فرۆشتن</button>
+                    <div style="margin-top:20px; border-top:2px dashed var(--line); padding-top:15px;">
+                        <h3 style="font-size:16px; margin:0 0 10px 0;">🛍 کاڵاکانی ناو سەبەتە</h3>
+                        <div id="cartTable"></div>
+                        <div class="formgrid" style="margin-top:15px;">
+                            <div><label>جۆری درانی پارە</label>
+                                <select id="saleType" onchange="toggleCustomerRequired()">
+                                    <option value="cash">نەقد (Cash)</option>
+                                    <option value="credit">قەرز (Credit)</option>
+                                </select>
+                            </div>
+                            <div><label id="customerLabel">ناوی کڕیار (ئارەزوومەندانە)</label><input id="saleCustomer" placeholder="ناوی کڕیار بنووسە..."></div>
+                            <div style="grid-column: 1 / -1;"><label>ژمارەی تەلەفۆنی کڕیار</label><input id="saleCustomerPhone" placeholder="0750XXXXXXX" type="text" style="direction: ltr; text-align: right;"></div>
+                        </div>
+                        <div style="margin-top:15px; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid var(--line);">
+                            <span style="font-size:15px; font-weight:600; color:var(--muted);">کۆی گشتی هەموو سەبەتەکە:</span>
+                            <span id="cartTotalPreview" style="font-size:22px; font-weight:bold; color:var(--gold);">0 د.ع</span>
+                        </div>
+                        <button class="primary" onclick="checkoutCart()">تۆمارکردن و چاپکردنی وەسڵ</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <h2 style="margin:0;">📋 مێژووی فرۆشتن</h2>
+                        <input class="search" id="salesSearch" oninput="renderSales()" placeholder="گەڕان...">
+                    </div>
+                    <div id="salesTable"></div>
+                </div>
+            </section>
+
+            <section id="purchases" class="page hidden">
+                <div class="panel">
+                    <h2>📥 تۆمارکردنی کڕین</h2>
+                    <div class="formgrid">
+                        <div><label>🔍 گەڕان بەدوای کاڵا</label><input id="purchaseSearchInput" placeholder="ناو یان کۆد بنووسە..." oninput="addOptions()"></div>
+                        <div><label>📦 هەڵبژاردنی کاڵا</label><select id="purchaseProduct" onchange="updatePurchaseCost()"></select></div>
+                        <div><label>ژمارە</label><input id="purchaseQty" type="number" pattern="[0-9]*" inputmode="numeric" min="1" value="1"></div>
+                        <div><label>نرخی کڕین بۆ یەک دانە (د.ع)</label><input id="purchasePrice" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                        <div style="grid-column: 1 / -1;"><label>فرۆشیار / کۆمپانیا</label><input id="supplier" placeholder="ناوی فرۆشیار"></div>
+                    </div>
+                    <button class="primary gold" onclick="addPurchase()">تۆمارکردنی کڕین</button>
+                </div>
+                <div class="panel">
+                    <h2>📋 مێژووی کڕین</h2>
+                    <div id="purchasesTable"></div>
+                </div>
+            </section>
+
+            <section id="returns" class="page hidden">
+                <div class="panel">
+                    <h2>🔄 گەڕاندنەوەی کاڵا (فاتوورەی مرجوعات)</h2>
+                    <div class="formgrid">
+                        <div><label>🔍 گەڕان بەدوای کاڵا</label><input id="returnSearchInput" placeholder="ناو یان کۆد بنووسە..." oninput="addOptions()"></div>
+                        <div><label>📦 هەڵبژاردنی کاڵا</label><select id="returnProduct" onchange="updateReturnCost()"></select></div>
+                        <div><label>ژمارە (دانە)</label><input id="returnQty" type="number" pattern="[0-9]*" inputmode="numeric" min="1" value="1"></div>
+                        <div><label>نرخی گەڕاندنەوە بۆ یەک دانە (د.ع)</label><input id="returnPrice" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                    </div>
+                    <button class="btn danger" style="margin-top:14px; width:100%; padding:12px; font-weight:bold;" onclick="addToReturnCart()">+ زیادکردن بۆ سەبەتەی مرجوعات</button>
+                    <div style="margin-top:20px; border-top:2px dashed var(--line); padding-top:15px;">
+                        <h3 style="font-size:16px; margin:0 0 10px 0;">🛍 کاڵاکانی گەڕاوە لە سەبەتە</h3>
+                        <div id="returnCartTable"></div>
+                        <div class="formgrid" style="margin-top:15px;">
+                            <div><label>ناوی کڕیار</label><input id="returnCustomer" placeholder="ناوی کڕیار بنووسە..."></div>
+                            <div><label>هۆکاری گەڕاندنەوە</label><input id="returnReason" placeholder="نموونە: هەڵە لە جۆر یان کێشە..."></div>
+                        </div>
+                        <div style="margin-top:15px; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid var(--line);">
+                            <span style="font-size:15px; font-weight:600; color:var(--muted);">کۆی گشتی بڕی گەڕاوە:</span>
+                            <span id="returnCartTotalPreview" style="font-size:22px; font-weight:bold; color:var(--danger);">0 د.ع</span>
+                        </div>
+                        <button class="primary danger text-white" style="background:#c53b3b;" onclick="checkoutReturnCart()">تۆمارکردن و چاپکردنی وەسڵی مرجوعات</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <h2 style="margin:0;">📋 مێژووی مرجوعات</h2>
+                        <input class="search" id="returnsSearch" oninput="renderReturns()" placeholder="گەڕان...">
+                    </div>
+                    <div id="returnsTable"></div>
+                </div>
+            </section>
+
+            <section id="stock" class="page hidden">
+                <div class="panel">
+                    <h2>📦 زیادکردنی کاڵای نوێ</h2>
+                    <div class="formgrid">
+                        <div><label>ناوی کاڵا</label><input id="productName" placeholder="نموونە: خلاط مغسل"></div>
+                        <div><label>کۆدی کاڵا (بارکۆد)</label><input id="productCode" placeholder="ALT-001"></div>
+                        <div><label>نرخی کڕین (د.ع)</label><input id="productBuy" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                        <div><label>نرخی فرۆشتن (د.ع)</label><input id="productSell" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                        <div><label>ژمارەی دەستپێک لە کۆگا</label><input id="productQty" type="number" pattern="[0-9]*" inputmode="numeric" min="0" value="0"></div>
+                        <div><label>کەمترین ژمارەی ئاگادارکردنەوە</label><input id="productMin" type="number" pattern="[0-9]*" inputmode="numeric" min="0" value="2"></div>
+                    </div>
+                    <button class="primary" onclick="addProduct()">زیادکردنی کاڵا بۆ کۆگا</button>
+                </div>
+                <div class="panel" style="background: #f8fafc; border: 2px dashed #cbd5e1;">
+                    <h2>📤 بەرزکردنەوەی کاڵاکان لەڕێی فایلی Excel (.xlsx / .csv)</h2>
+                    <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">دەتوانیت فایلی ئێکسڵ بەم ستوونانە بەرز بکەیتەوە: <b>ناوی کاڵا, کۆد, نرخی کڕین, نرخی فرۆشتن, ژمارە</b></p>
+                    <label class="btn" style="background:#25855a; color:#fff; padding:10px 15px; display:inline-block; cursor:pointer;">
+                        📁 هەڵبژاردن و بارکردنی فایلی Excel
+                        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="hidden" onchange="importExcel(event)">
+                    </label>
+                </div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <h2 style="margin:0;">📦 کۆگای کاڵاکان</h2>
+                        <div style="display:flex; gap:10px;">
+                            <input class="search" id="stockSearch" oninput="renderStock()" placeholder="گەڕان...">
+                            <button class="btn" style="background:#17191d; color:#fff;" onclick="window.print()">چاپ</button>
+                        </div>
+                    </div>
+                    <div id="stockTable"></div>
+                </div>
+            </section>
+
+            <section id="expenses" class="page hidden">
+                <div class="panel">
+                    <h2>💸 تۆمارکردنی خەرجی</h2>
+                    <div class="formgrid">
+                        <div><label>ناوی خەرجی</label><input id="expenseName" placeholder="کرێ، کارەبا..."></div>
+                        <div><label>بڕی پارە (د.ع)</label><input id="expenseAmount" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                    </div>
+                    <button class="primary" onclick="addExpense()">تۆمارکردن</button>
+                </div>
+                <div class="panel">
+                    <h2>📋 لیستی خەرجییەکان</h2>
+                    <div id="expensesTable"></div>
+                </div>
+            </section>
+
+            <section id="customers" class="page hidden">
+                <div class="panel">
+                    <h2>👤 تۆمارکردنی قەرز بۆ کڕیار</h2>
+                    <div class="formgrid">
+                        <div><label>ناوی کڕیار</label><input id="debtName" placeholder="ناوی کڕیار"></div>
+                        <div><label>بڕی قەرز (د.ع)</label><input id="debtAmount" type="number" pattern="[0-9]*" inputmode="numeric" min="0"></div>
+                        <div><label>تێبینی</label><input id="debtNote" placeholder="ژمارەی تەلەفۆن"></div>
+                    </div>
+                    <button class="primary" onclick="addDebt()">تۆمارکردنی قەرز</button>
+                </div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                        <h2 style="margin:0;">🔍 کەشف حسابی کڕیار (فاتورە و قەرزەکان)</h2>
+                        <input class="search" id="customerSearchInput" oninput="renderCustomerLedger()" placeholder="ناوی کڕیار بنووسە بۆ گەڕان..." style="max-width:350px;">
+                    </div>
+                    <div id="customerLedgerContent"></div>
+                </div>
+            </section>
+
+            <section id="reports" class="page hidden">
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                        <h2 style="margin:0;">📊 ڕاپۆرتی گشتی</h2>
+                        <select id="reportFilter" onchange="renderReports()" style="max-width:200px;">
+                            <option value="all">هەموو کاتێک</option>
+                            <option value="today">ئەمڕۆ</option>
+                            <option value="month">ئەم مانگە</option>
+                        </select>
+                    </div>
+                    <div class="reportgrid mb-6">
+                        <div class="card"><small>کۆی کڕین</small><strong id="rPurchases">0 د.ع</strong></div>
+                        <div class="card"><small>کۆی فرۆشتن</small><strong id="rSales">0 د.ع</strong></div>
+                        <div class="card"><small>کۆی مرجوعات</small><strong id="rReturns" style="color:var(--danger)">0 د.ع</strong></div>
+                        <div class="card"><small>قازانجی خام</small><strong id="rGross">0 د.ع</strong></div>
+                        <div class="card"><small>قازانجی پاک</small><strong id="rNet">0 د.ع</strong></div>
+                    </div>
+                    <button class="btn" style="background:#17191d; color:#fff; padding:12px 20px;" onclick="window.print()">🖨 چاپکردنی ڕاپۆرت</button>
+                </div>
+            </section>
+
+            <section id="settings" class="page hidden">
+                <div class="panel">
+                    <h2>⚙️ ڕێکخستنی سیستەم و پاشەکەوت</h2>
+                    <div class="setting"><span>یەکەی پارە</span><strong style="color:var(--gold);">دیناری عێراقی (د.ع)</strong></div>
+                    <div class="setting"><span>شێوازی پاشەکەوت</span><strong style="color:var(--ok);">ئۆنلاین لەسەر Cloudflare D1 ☁️</strong></div>
+                    <div style="margin-top:20px; background:#f8fafc; padding:20px; border-radius:16px; border:1px solid var(--line);">
+                        <h3 style="margin:0 0 10px 0; font-size:16px;">🔐 گۆڕینی ناوی بەکارهێنەر و وشەی نهێنی</h3>
+                        <div class="formgrid" style="margin-bottom:15px;">
+                            <div><label>ناوی بەکارهێنەری نوێ</label><input id="newUsername" placeholder="يوزەری نوێ"></div>
+                            <div><label>وشەی نهێنی نوێ</label><input id="newPassword" type="password" placeholder="پاسۆردی نوێ"></div>
+                        </div>
+                        <button class="btn gold" style="color:#fff; padding:12px 20px;" onclick="updateCredentials()">پاشەکەوتکردنی زانیاریی نوێ</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modalContainer"></div>
+
+    <script>
+        function $(id) { return document.getElementById(id); }
+        const money = n => new Intl.NumberFormat("ku-IQ").format(Math.round(n || 0)) + " د.ع";
+        function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+        const AUTH_USER_KEY = "ALTIN_USERNAME";
+        const AUTH_PASS_KEY = "ALTIN_PASSWORD";
+        const SESSION_KEY = "ALTIN_AUTH";
+
+        if (!localStorage.getItem(AUTH_USER_KEY)) {
+            localStorage.setItem(AUTH_USER_KEY, "admin");
+            localStorage.setItem(AUTH_PASS_KEY, "12345");
+        }
+
+        if (sessionStorage.getItem(SESSION_KEY) === "true") {
+            if ($("loginScreen")) $("loginScreen").style.display = "none";
+            if ($("mainApp")) {
+                $("mainApp").style.display = "flex";
+                loadDataFromCloudflare();
+            }
+        }
+
+        function handleLogin() {
+            let uInput = $("loginUsername");
+            let pInput = $("loginPassword");
+            let u = uInput ? uInput.value.trim() : "";
+            let p = pInput ? pInput.value.trim() : "";
+            let savedUser = localStorage.getItem(AUTH_USER_KEY) || "admin";
+            let savedPass = localStorage.getItem(AUTH_PASS_KEY) || "12345";
+
+            if (u === savedUser && p === savedPass) {
+                sessionStorage.setItem(SESSION_KEY, "true");
+                if ($("loginScreen")) $("loginScreen").style.display = "none";
+                if ($("mainApp")) {
+                    $("mainApp").style.display = "flex";
+                    loadDataFromCloudflare();
+                }
+            } else {
+                if ($("loginError")) {
+                    $("loginError").style.display = "block";
+                    if (pInput) pInput.value = "";
+                }
+            }
+        }
+
+        function handleLogout() {
+            if(confirm("ئایا دڵنیایت دەتەوێت بچیتە دەرەوە؟")) {
+                sessionStorage.removeItem(SESSION_KEY);
+                location.reload();
+            }
+        }
+
+        function updateCredentials() {
+            let u = $("newUsername").value.trim();
+            let p = $("newPassword").value.trim();
+            if(!u || !p) { showMsg("تێبینی", "تکایە هەردوو خانە پڕبکەرەوە", true); return; }
+            localStorage.setItem(AUTH_USER_KEY, u);
+            localStorage.setItem(AUTH_PASS_KEY, p);
+            $("newUsername").value = ""; $("newPassword").value = "";
+            showMsg("سەرکەوتوو بوو", "زانیاری گۆڕدرا.");
+        }
+
+        let db = { products: [], sales: [], purchases: [], expenses: [], debts: [], returns: [] };
+        
+        let carts = JSON.parse(localStorage.getItem("ALTIN_CARTS_V1") || 'null') || {
+            activeCartId: "cart_1",
+            items: { "cart_1": { name: "سەبەتەی ١", items: [], type: "cash", customer: "", phone: "" } }
+        };
+
+        function saveCarts() { localStorage.setItem("ALTIN_CARTS_V1", JSON.stringify(carts)); }
+
+        async function loadDataFromCloudflare() {
+            try {
+                let res = await fetch('/api/all');
+                if (res.ok) {
+                    let data = await res.json();
+                    db.products = data.products || [];
+                    db.sales = data.sales || [];
+                    db.purchases = data.purchases || [];
+                    db.expenses = data.expenses || [];
+                    db.debts = data.debts || [];
+                    db.returns = data.returns || [];
+                    renderAll();
+                }
+            } catch (err) {
+                console.error("کێشە لە خوێندنەوەی Cloudflare API:", err);
+            }
+        }
+
+        function addNewCart() {
+            let keys = Object.keys(carts.items);
+            let newId = "cart_" + (keys.length + 1);
+            carts.items[newId] = { name: "سەبەتەی " + (keys.length + 1), items: [], type: "cash", customer: "", phone: "" };
+            carts.activeCartId = newId;
+            saveCarts();
+            renderCartTabs();
+            renderCart();
+        }
+
+        function switchCart(id) { carts.activeCartId = id; saveCarts(); renderCartTabs(); renderCart(); }
+
+        function removeCartTab(id, event) {
+            event.stopPropagation();
+            let keys = Object.keys(carts.items);
+            if (keys.length <= 1) { showMsg("تێبینی", "ناتوانیت کۆتا سەبەتە بسڕیتەوە!", true); return; }
+            if (confirm("ئایا دڵنیایت؟")) {
+                delete carts.items[id];
+                if (carts.activeCartId === id) carts.activeCartId = Object.keys(carts.items)[0];
+                saveCarts(); renderCartTabs(); renderCart();
+            }
+        }
+
+        function renderCartTabs() {
+            let container = $("cartTabsContainer");
+            if (!container) return;
+            let html = "";
+            for (let id in carts.items) {
+                let c = carts.items[id];
+                let isActive = carts.activeCartId === id;
+                let count = c.items.reduce((sum, i) => sum + i.qty, 0);
+                let activeBg = isActive ? 'var(--gold)' : '#fff';
+                let activeColor = isActive ? '#fff' : 'var(--text)';
+                html += `<div onclick="switchCart('${id}')" style="display:flex; align-items:center; gap:8px; padding:10px 16px; background:${activeBg}; color:${activeColor}; border-radius:12px; cursor:pointer; border:1px solid var(--line); font-weight:600; font-size:14px; white-space:nowrap;">`;
+                html += `<span>${c.name} (${count})</span>`;
+                if(Object.keys(carts.items).length > 1) {
+                    html += `<span onclick="removeCartTab('${id}', event)" style="font-size:12px; opacity:0.8; padding:2px 6px; border-radius:6px; background:rgba(0,0,0,0.1);">✕</span>`;
+                }
+                html += `</div>`;
+            }
+            container.innerHTML = html;
+            let currentCartObj = carts.items[carts.activeCartId];
+            if (currentCartObj && $("currentCartTitle")) {
+                $("currentCartTitle").textContent = `🛒 تۆمارکردنی فرۆشتن (${currentCartObj.name})`;
+                if ($("saleType")) $("saleType").value = currentCartObj.type || "cash";
+                if ($("saleCustomer")) $("saleCustomer").value = currentCartObj.customer || "";
+                if ($("saleCustomerPhone")) $("saleCustomerPhone").value = currentCartObj.phone || "";
+            }
+        }
+
+        let currentReturnCart = [];
+
+        function product(id) { return db.products.find(p => p.id == id); }
+
+        function showPage(id, btn) {
+            document.querySelectorAll(".page").forEach(x => x.classList.add("hidden"));
+            $(id).classList.remove("hidden");
+            document.querySelectorAll(".nav button:not(.logout-btn)").forEach(x => x.classList.remove("active"));
+            if (btn && !btn.classList.contains("logout-btn")) btn.classList.add("active");
+            const titles = { dashboard: "داشبۆرد", sales: "فرۆشتن", purchases: "کڕین", returns: "مرجوعات", stock: "کۆگا", expenses: "خەرجی", customers: "کڕیاران و قەرز", reports: "ڕاپۆرت", settings: "ڕێکخستن" };
+            if($("pageTitle")) $("pageTitle").textContent = titles[id];
+            window.scrollTo(0, 0);
+        }
+
+        function go(id) { showPage(id, document.querySelector(`.nav button[onclick*="'${id}'"]`)); }
+
+        function showMsg(title, text, isError = false) {
+            let iconColor = isError ? '#dc2626' : '#059669';
+            let iconBg = isError ? '#fee2e2' : '#d1fae5';
+            let iconMark = isError ? '!' : '✓';
+            let html = `
+                <div class="modal-overlay">
+                    <div class="modal-box text-center">
+                        <div style="width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:20px; font-weight:bold; background:${iconBg}; color:${iconColor};">
+                            ${iconMark}
+                        </div>
+                        <h3 style="font-size:18px; font-weight:bold; margin-bottom:8px;">${title}</h3>
+                        <p style="font-size:14px; color:var(--muted); margin-bottom:20px;">${text}</p>
+                        <button class="primary" onclick="closeModal()">باشە</button>
+                    </div>
+                </div>
+            `;
+            $("modalContainer").innerHTML = html;
+        }
+
+        function closeModal() { $("modalContainer").innerHTML = ""; }
+
+        async function addProduct() {
+            let p = {
+                id: uid(),
+                name: $("productName").value.trim(),
+                code: $("productCode").value.trim(),
+                buy: +$("productBuy").value,
+                sell: +$("productSell").value,
+                qty: +$("productQty").value,
+                min: +$("productMin").value
+            };
+            if (!p.name) { showMsg("تێبینی", "تکایە ناوی کاڵا بنووسە", true); return; }
+            
+            let res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(p)
+            });
+
+            if (!res.ok) {
+                showMsg("هەڵە", "نەتوانرا کاڵا ل سەر Cloudflare پاشەکەوت بکەرێت", true);
+            } else {
+                db.products.push(p);
+                ["productName", "productCode", "productBuy", "productSell", "productQty"].forEach(id => $(id).value = "");
+                $("productMin").value = 2;
+                renderAll();
+                showMsg("سەرکەوتوو بوو", "کاڵاکە لە کۆگایا Cloudflare زیادکرا.");
+            }
+        }
+
+        function editProductModal(id) {
+            let p = product(id);
+            if (!p) return;
+            let codeVal = p.code || "";
+            let html = `
+                <div class="modal-overlay">
+                    <div class="modal-box">
+                        <h2 style="margin-top:0;">✏ دەستکاریکردنی کاڵا</h2>
+                        <div class="formgrid">
+                            <div><label>ناوی کاڵا</label><input id="editName" value="${p.name}"></div>
+                            <div><label>کۆد</label><input id="editCode" value="${codeVal}"></div>
+                            <div><label>نرخی کڕین</label><input id="editBuy" type="number" value="${p.buy}"></div>
+                            <div><label>نرخی فرۆشتن</label><input id="editSell" type="number" value="${p.sell}"></div>
+                            <div><label>بڕ لە کۆگا</label><input id="editQty" type="number" value="${p.qty}"></div>
+                            <div><label>کەمترین بڕی ئاگادارکردنەوە</label><input id="editMin" type="number" value="${p.min}"></div>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:20px;">
+                            <button class="primary gold" style="flex:1;" onclick="saveEditedProduct('${p.id}')">پاشەکەوتکردن</button>
+                            <button class="btn" style="flex:1; background:#e5e7eb;" onclick="closeModal()">پاشگەزبوونەوە</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $("modalContainer").innerHTML = html;
+        }
+
+        async function saveEditedProduct(id) {
+            let p = product(id);
+            if (!p) return;
+            let newName = $("editName").value.trim();
+            if (!newName) { showMsg("تێبینی", "ناوی کاڵا ناتواندرێت بەتاڵ بێت", true); return; }
+            p.name = newName; p.code = $("editCode").value.trim();
+            p.buy = +$("editBuy").value || 0; p.sell = +$("editSell").value || 0;
+            p.qty = +$("editQty").value || 0; p.min = +$("editMin").value || 0;
+
+            await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(p)
+            });
+
+            renderAll(); closeModal(); showMsg("سەرکەوتوو بوو", "زانیارییەکانی کاڵاکە نوێکرانەوە.");
+        }
+
+        async function importExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                    let addedCount = 0;
+                    for (let i = 1; i < json.length; i++) {
+                        let row = json[i];
+                        if (!row || row.length === 0) continue;
+                        let name = String(row[0] || "").trim();
+                        let code = String(row[1] || "").trim();
+                        let buy = Number(row[2]) || 0;
+                        let sell = Number(row[3]) || 0;
+                        let qty = Number(row[4]) || 0;
+                        if (name) {
+                            let p = { id: uid(), name, code: code !== "undefined" ? code : "", buy, sell, qty, min: 2 };
+                            await fetch('/api/products', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(p)
+                            });
+                            db.products.push(p);
+                            addedCount++;
+                        }
+                    }
+                    renderAll(); showMsg("سەرکەوتوو بوو", `${addedCount} کاڵا زیادکران.`);
+                } catch (err) { showMsg("هەڵە", "نەتوانرا فایلەکە بخوێنرێتەوە.", true); }
+                event.target.value = "";
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function updateSaleMax() {
+            let p = product($("saleProduct").value);
+            if (p) { $("salePrice").value = p.sell; $("saleQty").max = p.qty; }
+        }
+        function updatePurchaseCost() {
+            let p = product($("purchaseProduct").value);
+            if (p) $("purchasePrice").value = p.buy;
+        }
+        function updateReturnCost() {
+            let p = product($("returnProduct").value);
+            if (p) $("returnPrice").value = p.sell;
+        }
+
+        function addToCart() {
+            let id = $("saleProduct").value, p = product(id), q = +$("saleQty").value, price = +$("salePrice").value;
+            if (!p || q <= 0 || price < 0) { showMsg("تێبینی", "تکایە کاڵا و بڕ بە دروستی هەڵبژێرە", true); return; }
+            let currentCartObj = carts.items[carts.activeCartId];
+            let inCartQty = currentCartObj.items.filter(item => item.product == id).reduce((sum, item) => sum + item.qty, 0);
+            if (p.qty < (inCartQty + q)) { showMsg("تێبینی", `تەنها ${p.qty - inCartQty} دانە لەم کاڵایە لە کۆگا ماوە!`, true); return; }
+            currentCartObj.items.push({ product: id, name: p.name, qty: q, price: price });
+            saveCarts(); renderCart(); renderCartTabs(); $("saleQty").value = "1";
+        }
+
+        function removeFromCart(index) {
+            carts.items[carts.activeCartId].items.splice(index, 1);
+            saveCarts(); renderCart(); renderCartTabs();
+        }
+
+        function renderCart() {
+            let div = $("cartTable");
+            if (!div) return;
+            let currentCartObj = carts.items[carts.activeCartId];
+            let items = currentCartObj.items;
+            if (items.length === 0) {
+                div.innerHTML = `<div class="empty" style="padding:15px;">ئەم سەبەتەیە بەتاڵە.</div>`;
+                $("cartTotalPreview").textContent = money(0);
+                return;
+            }
+            let total = 0;
+            let html = `<div class="tablewrap"><table><tr><th>کاڵا</th><th>ژمارە</th><th>نرخی تاک</th><th>کۆی گشتی</th><th></th></tr>`;
+            items.forEach((item, idx) => {
+                let sub = item.price * item.qty; total += sub;
+                html += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(sub)}</td><td><button class="btn" style="color:var(--danger);" onclick="removeFromCart(${idx})">✕</button></td></tr>`;
+            });
+            html += `</table></div>`;
+            div.innerHTML = html;
+            $("cartTotalPreview").textContent = money(total);
+        }
+
+        function toggleCustomerRequired() {
+            let type = $("saleType").value;
+            carts.items[carts.activeCartId].type = type;
+            saveCarts();
+            $("customerLabel").innerHTML = type === 'credit' ? `ناوی کڕیار <span style="color:var(--danger);">(ئیجبارییە)</span>` : `ناوی کڕیار (ئارەزوومەندانە)`;
+        }
+
+        async function checkoutCart() {
+            let currentCartObj = carts.items[carts.activeCartId];
+            if (currentCartObj.items.length === 0) { showMsg("تێبینی", "سەبەتە بەتاڵە!", true); return; }
+            let type = $("saleType").value;
+            let customerName = $("saleCustomer").value.trim();
+            let customerPhone = $("saleCustomerPhone").value.trim();
+
+            if (type === "credit" && !customerName) { showMsg("تێبینی", "ناوی کڕیار بۆ قەرز ئیجبارییە", true); return; }
+
+            let cartTotal = 0;
+            let itemsToSave = [];
+            for (let item of currentCartObj.items) {
+                let p = product(item.product);
+                if (!p || p.qty < item.qty) { showMsg("هەڵە", `کاڵای (${item.name}) بەو بڕە لە کۆگا نییە!`, true); return; }
+            }
+
+            for (let item of currentCartObj.items) {
+                let p = product(item.product);
+                if (p) {
+                    p.qty -= item.qty;
+                    await fetch(`/api/products/${p.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(p)
+                    });
+                }
+                cartTotal += (item.price * item.qty);
+                itemsToSave.push({ product: item.product, name: item.name, qty: item.qty, price: item.price });
+            }
+
+            let previousDebt = 0;
+            if (customerName) {
+                let existingDebts = db.debts.filter(d => d.name.toLowerCase() === customerName.toLowerCase());
+                previousDebt = existingDebts.reduce((sum, d) => sum + d.amount, 0);
+            }
+
+            let saleData = {
+                id: uid(),
+                date: new Date().toISOString(),
+                items: itemsToSave,
+                total: cartTotal,
+                customer: customerName || (type === "credit" ? "کڕیاری قەرز" : ""),
+                customerPhone: customerPhone,
+                paymentType: type,
+                previousDebt: previousDebt
+            };
+
+            await fetch('/api/sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saleData)
+            });
+
+            db.sales.push(saleData);
+            printSale(saleData.id);
+
+            if (type === "credit") {
+                let debtData = { id: uid(), date: new Date().toISOString(), name: customerName, amount: cartTotal, note: `قەرزی فاتوورە - ${customerPhone}` };
+                await fetch('/api/debts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(debtData)
+                });
+                db.debts.push(debtData);
+            }
+
+            currentCartObj.items = []; currentCartObj.customer = ""; currentCartObj.phone = "";
+            saveCarts(); renderCart(); renderCartTabs();
+            $("saleCustomer").value = ""; $("saleCustomerPhone").value = "";
+            addOptions(); renderAll();
+        }
+
+        function addToReturnCart() {
+            let id = $("returnProduct").value, p = product(id), q = +$("returnQty").value, price = +$("returnPrice").value;
+            if (!p || q <= 0 || price < 0) { showMsg("تێبینی", "تکایە زانیاری تەواو بکە", true); return; }
+            currentReturnCart.push({ product: id, name: p.name, qty: q, price: price });
+            renderReturnCart(); $("returnQty").value = "1";
+        }
+
+        function removeFromReturnCart(index) { currentReturnCart.splice(index, 1); renderReturnCart(); }
+
+        function renderReturnCart() {
+            let div = $("returnCartTable");
+            if (!div) return;
+            if (currentReturnCart.length === 0) {
+                div.innerHTML = `<div class="empty" style="padding:15px;">سەبەتە بەتاڵە.</div>`;
+                $("returnCartTotalPreview").textContent = money(0);
+                return;
+            }
+            let total = 0;
+            let html = `<div class="tablewrap"><table><tr><th>کاڵا</th><th>ژمارە</th><th>نرخ</th><th>کۆی گشتی</th><th></th></tr>`;
+            currentReturnCart.forEach((item, idx) => {
+                let sub = item.price * item.qty; total += sub;
+                html += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(sub)}</td><td><button class="btn" style="color:var(--danger);" onclick="removeFromReturnCart(${idx})">✕</button></td></tr>`;
+            });
+            html += `</table></div>`;
+            div.innerHTML = html;
+            $("returnCartTotalPreview").textContent = money(total);
+        }
+
+        async function checkoutReturnCart() {
+            if (currentReturnCart.length === 0) { showMsg("تێبینی", "سەبەتە بەتاڵە!", true); return; }
+            let customerName = $("returnCustomer").value.trim();
+            let reason = $("returnReason").value.trim();
+            let returnTotal = 0;
+            let itemsToSave = [];
+
+            for (let item of currentReturnCart) {
+                let p = product(item.product);
+                if (p) {
+                    p.qty += item.qty;
+                    await fetch(`/api/products/${p.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(p)
+                    });
+                }
+                returnTotal += (item.price * item.qty);
+                itemsToSave.push({ product: item.product, name: item.name, qty: item.qty, price: item.price });
+            }
+
+            let returnData = { id: uid(), date: new Date().toISOString(), items: itemsToSave, total: returnTotal, customer: customerName || "سەردانکەر", reason: reason || "نادیار" };
+            await fetch('/api/returns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(returnData)
+            });
+
+            db.returns.push(returnData);
+            printReturn(returnData.id);
+            currentReturnCart = []; renderReturnCart();
+            $("returnCustomer").value = ""; $("returnReason").value = ""; renderAll();
+        }
+
+        function printSale(id) { let s = db.sales.find(x => x.id == id); if(s) showMultiReceipt(s); }
+        function printReturn(id) { let r = db.returns.find(x => x.id == id); if(r) showReturnReceipt(r); }
+
+        function showReturnReceipt(r) {
+            let invoiceNo = "RET-" + Math.floor(100000 + Math.random() * 900000); 
+            let itemsHtml = "";
+            let itemsArray = r.items || [];
+            for(let i=0; i<itemsArray.length; i++){
+                let item = itemsArray[i];
+                itemsHtml += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td style="color:var(--danger);">${money(item.price * item.qty)}</td></tr>`;
+            }
+            let html = `
+                <div class="modal-overlay">
+                    <div class="modal-box invoice-print-area">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--danger); padding-bottom: 20px; margin-bottom: 30px;">
+                                <div><h1 style="color: var(--danger); font-size: 36px; font-weight: 900; margin: 0;">ALTIN</h1><p style="color: var(--muted); margin: 4px 0 0 0;">فاتوورەی گەڕاندنەوە (مرجوعات)</p></div>
+                                <div style="text-align: left;"><h2 style="margin: 0; font-size: 24px;">وەسڵی مرجوعات</h2><p style="margin: 8px 0 4px 0; font-size: 14px;">ژمارە: <strong>${invoiceNo}</strong></p></div>
+                            </div>
+                            <div style="background: #f8fafc; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 25px;">
+                                <strong>کڕیار: ${r.customer}</strong><span style="display:block; margin-top:5px; color:var(--muted);">هۆکار: ${r.reason}</span>
+                            </div>
+                            <div class="tablewrap" style="margin-bottom: 25px;">
+                                <table><tr><th>کاڵا</th><th>ژمارە</th><th>نرخ</th><th>کۆی گشتی</th></tr>${itemsHtml}</table>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
+                                <div style="background: #fff5f5; border: 2px solid var(--danger); border-radius: 14px; padding: 15px 20px;">
+                                    <strong>کۆی گشتی گەڕاوە: <span style="color:var(--danger);">${money(r.total)}</span></strong>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px;" class="no-print">
+                                <button class="primary danger text-white" style="flex:1; padding:12px; background:#c53b3b;" onclick="window.print()">🖨️ چاپکردن</button>
+                                <button class="btn" style="flex:1; padding:12px; background:#e5e7eb;" onclick="closeModal()">داخستن</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $("modalContainer").innerHTML = html;
+        }
+
+        function showMultiReceipt(s) {
+            let invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000); 
+            let prevDebt = s.previousDebt !== undefined ? s.previousDebt : 0;
+            let itemsHtml = "";
+            let itemsArray = s.items || [];
+            for(let i=0; i<itemsArray.length; i++){
+                let item = itemsArray[i];
+                itemsHtml += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td style="color:var(--gold);">${money(item.price * item.qty)}</td></tr>`;
+            }
+            let html = `
+                <div class="modal-overlay">
+                    <div class="modal-box invoice-print-area">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--gold); padding-bottom: 20px; margin-bottom: 30px;">
+                                <div><h1 style="color: var(--gold); font-size: 36px; font-weight: 900; margin: 0;">ALTIN</h1><p style="color: var(--muted); margin: 4px 0 0 0;">کەرەستەی تەندروستی و بۆری - دهۆک</p></div>
+                                <div style="text-align: left;"><h2 style="margin: 0; font-size: 24px;">فاتوورەی فرۆشتن</h2><p style="margin: 8px 0 4px 0; font-size: 14px;">ژمارە: <strong>${invoiceNo}</strong></p></div>
+                            </div>
+                            <div style="background: #f8fafc; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 25px;">
+                                <strong>بۆ بەڕێز: ${s.customer || "سەردانکەر"}</strong> ${s.customerPhone ? `<br><span style="color:var(--muted);">مۆبایل: ${s.customerPhone}</span>` : ''}
+                            </div>
+                            <div class="tablewrap" style="margin-bottom: 25px;">
+                                <table><tr><th>کاڵا</th><th>ژمارە</th><th>نرخ</th><th>کۆی گشتی</th></tr>${itemsHtml}</table>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
+                                <div style="background: #fffdf9; border: 2px solid var(--gold); border-radius: 14px; padding: 15px 20px;">
+                                    <div>کۆی فاتوورە: <strong>${money(s.total)}</strong></div>
+                                    <div style="color:var(--danger); margin-top:5px;">قەرزی پێشوو: <strong>${money(prevDebt)}</strong></div>
+                                    <div style="margin-top:8px; font-size:18px; color:var(--gold);">کۆی گشتی: <strong>${money(s.total + prevDebt)}</strong></div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px;" class="no-print">
+                                <button class="primary gold" style="flex:1; padding:12px;" onclick="window.print()">🖨️ چاپکردنی فاتوورە</button>
+                                <button class="btn" style="flex:1; padding:12px; background:#e5e7eb;" onclick="closeModal()">داخستن</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $("modalContainer").innerHTML = html;
+        }
+
+        async function addPurchase() {
+            let id = $("purchaseProduct").value, p = product(id), q = +$("purchaseQty").value, price = +$("purchasePrice").value;
+            if (!p || q <= 0 || price < 0) { showMsg("تێبینی", "زانیاری تەواو بکە", true); return; }
+            p.qty += q; p.buy = price;
+
+            await fetch(`/api/products/${p.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(p)
+            });
+
+            let purData = { id: uid(), product: id, qty: q, price, supplier: $("supplier").value.trim(), date: new Date().toISOString() };
+            await fetch('/api/purchases', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(purData)
+            });
+
+            db.purchases.push(purData);
+            renderAll(); showMsg("سەرکەوتوو بوو", "کڕین تۆمارکرا.");
+        }
+
+        async function addExpense() {
+            let name = $("expenseName").value.trim(), amount = +$("expenseAmount").value;
+            if (!name || amount <= 0) { showMsg("تێبینی", "زانیاری تەواو بکە", true); return; }
+            let expData = { id: uid(), name, amount, date: new Date().toISOString() };
+
+            await fetch('/api/expenses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(expData)
+            });
+
+            db.expenses.push(expData);
+            renderAll(); showMsg("سەرکەوتوو بوو", "خەرجی تۆمارکرا.");
+        }
+
+        async function addDebt() {
+            let name = $("debtName").value.trim(), amount = +$("debtAmount").value;
+            if (!name || amount <= 0) { showMsg("تێبینی", "زانیاری تەواو بکە", true); return; }
+            let debtData = { id: uid(), name, amount, note: $("debtNote").value.trim(), date: new Date().toISOString() };
+
+            await fetch('/api/debts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(debtData)
+            });
+
+            db.debts.push(debtData);
+            renderAll(); showMsg("سەرکەوتوو بوو", "قەرز تۆمارکرا.");
+        }
+
+        async function del(type, id) {
+            if (confirm("ئایا دڵنیایت لە سڕینەوە؟")) {
+                await fetch(`/api/${type}/${id}`, { method: 'DELETE' });
+                db[type] = db[type].filter(x => x.id != id);
+                renderAll();
+            }
+        }
+
+        async function addPayment(id) {
+            let d = db.debts.find(x => x.id == id);
+            let n = +prompt(`قەرز: ${money(d.amount)}\nپارەی دراو چەندە؟`, d.amount);
+            if (n > 0) {
+                let paid = Math.min(n, d.amount);
+                d.amount = Math.max(0, d.amount - paid);
+                if (d.amount === 0) {
+                    await fetch(`/api/debts/${id}`, { method: 'DELETE' });
+                    db.debts = db.debts.filter(x => x.id != id);
+                } else {
+                    await fetch(`/api/debts/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount: d.amount })
+                    });
+                }
+                renderAll(); showMsg("سەرکەوتوو بوو", "پارە وەرگیرا و قەرز کەمکرایەوە.");
+            }
+        }
+
+        function addOptions() {
+            let sq = ($("saleSearchInput")?.value || "").toLowerCase();
+            let pq = ($("purchaseSearchInput")?.value || "").toLowerCase();
+            let rq = ($("returnSearchInput")?.value || "").toLowerCase();
+
+            let saleSelect = $("saleProduct"), purSelect = $("purchaseProduct"), retSelect = $("returnProduct");
+            if (saleSelect) {
+                let html = "";
+                let sArr = db.products.filter(p => p.name.toLowerCase().includes(sq) || (p.code || "").toLowerCase().includes(sq));
+                for(let i=0; i<sArr.length; i++){ html += `<option value="${sArr[i].id}">${sArr[i].name} — (${sArr[i].qty} دانە)</option>`; }
+                saleSelect.innerHTML = html;
+            }
+            if (purSelect) {
+                let html = "";
+                let pArr = db.products.filter(p => p.name.toLowerCase().includes(pq) || (p.code || "").toLowerCase().includes(pq));
+                for(let i=0; i<pArr.length; i++){ html += `<option value="${pArr[i].id}">${pArr[i].name} — (${pArr[i].qty} دانە)</option>`; }
+                purSelect.innerHTML = html;
+            }
+            if (retSelect) {
+                let html = "";
+                let rArr = db.products.filter(p => p.name.toLowerCase().includes(rq) || (p.code || "").toLowerCase().includes(rq));
+                for(let i=0; i<rArr.length; i++){ html += `<option value="${rArr[i].id}">${rArr[i].name} — (${rArr[i].qty} دانە)</option>`; }
+                retSelect.innerHTML = html;
+            }
+            updateSaleMax(); updatePurchaseCost(); updateReturnCost();
+        }
+
+        function renderStock() {
+            let q = ($("stockSearch") ? $("stockSearch").value : "").toLowerCase();
+            let ps = db.products.filter(p => p.name.toLowerCase().includes(q) || (p.code || "").toLowerCase().includes(q));
+            let html = "";
+            if(ps.length === 0){
+                html = '<div class="empty">هیچ کاڵایەک نییە.</div>';
+            } else {
+                html += '<div class="tablewrap"><table><tr><th>کاڵا</th><th>کۆد</th><th>کۆگا</th><th>کڕین</th><th>فرۆشتن</th><th class="no-print">کردار</th></tr>';
+                for(let i=0; i<ps.length; i++){
+                    let p = ps[i];
+                    let badge = p.qty <= p.min ? 'low' : '';
+                    let c = p.code || "-";
+                    html += `<tr><td>${p.name}</td><td>${c}</td><td><span class="badge ${badge}">${p.qty}</span></td><td>${money(p.buy)}</td><td>${money(p.sell)}</td><td class="no-print"><button class="btn" style="color:var(--gold);" onclick="editProductModal('${p.id}')">✏️️</button> <button class="btn" style="color:var(--danger);" onclick="del('products','${p.id}')">✕</button></td></tr>`;
+                }
+                html += '</table></div>';
+            }
+            $("stockTable").innerHTML = html;
+        }
+
+        function renderSales() {
+            let q = ($("salesSearch") ? $("salesSearch").value : "").toLowerCase();
+            let ss = db.sales.filter(x => (x.customer || "").toLowerCase().includes(q) || (x.customerPhone || "").includes(q));
+            let html = "";
+            if(ss.length === 0){
+                html = '<div class="empty">هیچ فرۆشتنێک نییە.</div>';
+            } else {
+                html += '<div class="tablewrap"><table><tr><th>بەروار</th><th>کڕیار</th><th>جۆر</th><th>کۆی گشتی</th><th class="no-print"></th></tr>';
+                let rev = ss.slice().reverse();
+                for(let i=0; i<rev.length; i++){
+                    let x = rev[i];
+                    let d = new Date(x.date).toLocaleDateString("ku-IQ");
+                    let c = x.customer || "-";
+                    let badgeClass = x.paymentType === 'credit' ? 'low' : '';
+                    let badgeText = x.paymentType === 'credit' ? 'قەرز' : 'نەقد';
+                    let m = money(x.total);
+                    html += `<tr><td>${d}</td><td>${c}</td><td><span class="badge ${badgeClass}">${badgeText}</span></td><td>${m}</td><td class="no-print"><button class="btn" onclick="printSale('${x.id}')">وەسڵ</button> <button class="btn" style="color:var(--danger);" onclick="del('sales','${x.id}')">✕</button></td></tr>`;
+                }
+                html += '</table></div>';
+            }
+            $("salesTable").innerHTML = html;
+        }
+
+        function renderPurchases() {
+            let html = "";
+            if (db.purchases.length === 0) {
+                html = '<div class="empty">هیچ کڕینێک نییە.</div>';
+            } else {
+                html += '<div class="tablewrap"><table><tr><th>بەروار</th><th>فرۆشیار</th><th>کاڵا</th><th>ژمارە</th><th>کۆی کڕین</th><th class="no-print"></th></tr>';
+                let rev = db.purchases.slice().reverse();
+                for (let i=0; i<rev.length; i++) {
+                    let x = rev[i];
+                    let p = product(x.product);
+                    let pName = p ? p.name : "سڕاوەتەوە";
+                    let d = new Date(x.date).toLocaleDateString("ku-IQ");
+                    let sup = x.supplier || "-";
+                    let total = money(x.price * x.qty);
+                    html += `<tr><td>${d}</td><td>${sup}</td><td>${pName}</td><td>${x.qty}</td><td>${total}</td><td class="no-print"><button class="btn" style="color:var(--danger);" onclick="del('purchases','${x.id}')">✕</button></td></tr>`;
+                }
+                html += '</table></div>';
+            }
+            $("purchasesTable").innerHTML = html;
+        }
+
+        function renderReturns() {
+            let html = "";
+            let rets = db.returns || [];
+            if(rets.length === 0){
+                html = '<div class="empty">هیچ مرجوعاتێک نییە.</div>';
+            } else {
+                html += '<div class="tablewrap"><table><tr><th>بەروار</th><th>کڕیار</th><th>هۆکار</th><th>کۆی پارە</th><th class="no-print"></th></tr>';
+                let rev = rets.slice().reverse();
+                for(let i=0; i<rev.length; i++){
+                    let x = rev[i];
+                    let d = new Date(x.date).toLocaleDateString("ku-IQ");
+                    let m = money(x.total);
+                    html += `<tr><td>${d}</td><td>${x.customer}</td><td>${x.reason}</td><td>${m}</td><td class="no-print"><button class="btn" onclick="printReturn('${x.id}')">وەسڵ</button> <button class="btn" style="color:var(--danger);" onclick="del('returns','${x.id}')">✕</button></td></tr>`;
+                }
+                html += '</table></div>';
+            }
+            $("returnsTable").innerHTML = html;
+        }
+
+        function renderExpenses() {
+            let html = "";
+            if(db.expenses.length === 0){
+                html = '<div class="empty">هیچ خەرجییەک نییە.</div>';
+            } else {
+                html += '<div class="tablewrap"><table><tr><th>بەروار</th><th>خەرجی</th><th>بڕ</th><th class="no-print"></th></tr>';
+                let rev = db.expenses.slice().reverse();
+                for(let i=0; i<rev.length; i++){
+                    let x = rev[i];
+                    let d = new Date(x.date).toLocaleDateString("ku-IQ");
+                    let m = money(x.amount);
+                    html += `<tr><td>${d}</td><td>${x.name}</td><td>${m}</td><td class="no-print"><button class="btn" style="color:var(--danger);" onclick="del('expenses','${x.id}')">✕</button></td></tr>`;
+                }
+                html += '</table></div>';
+            }
+            $("expensesTable").innerHTML = html;
+        }
+
+        function renderCustomerLedger() {
+            let q = ($("customerSearchInput") ? $("customerSearchInput").value : "").trim().toLowerCase();
+            let div = $("customerLedgerContent");
+            if (!div) return;
+            let html = "";
+            if (!q) {
+                if(db.debts.length === 0){
+                    html = '<div class="empty">هیچ قەرزێک نییە. ناوی کڕیار بنووسە.</div>';
+                } else {
+                    html += '<div class="tablewrap"><table><tr><th>کڕیار</th><th>قەرز</th><th>تێبینی</th><th class="no-print">کردار</th></tr>';
+                    for(let i=0; i<db.debts.length; i++){
+                        let x = db.debts[i];
+                        let note = x.note || "-";
+                        html += `<tr><td>${x.name}</td><td>${money(x.amount)}</td><td>${note}</td><td class="no-print"><button class="btn" style="background:#d1fae5; color:#065f46;" onclick="addPayment('${x.id}')">پارەدان</button> <button class="btn" style="color:var(--danger);" onclick="del('debts','${x.id}')">✕</button></td></tr>`;
+                    }
+                    html += '</table></div>';
+                }
+            } else {
+                let cDebts = db.debts.filter(x => x.name.toLowerCase().includes(q));
+                if(cDebts.length === 0){
+                    html = '<div class="empty">هیچ قەرزێک بۆ ئەم ناوی کڕیارە نەدۆزرایەوە.</div>';
+                } else {
+                    html += '<div class="tablewrap"><table><tr><th>بەروار</th><th>قەرز</th><th>تێبینی</th><th class="no-print">کردار</th></tr>';
+                    for(let i=0; i<cDebts.length; i++){
+                        let x = cDebts[i];
+                        let d = new Date(x.date).toLocaleDateString("ku-IQ");
+                        let note = x.note || "-";
+                        html += `<tr><td>${d}</td><td>${money(x.amount)}</td><td>${note}</td><td class="no-print"><button class="btn" style="background:#d1fae5; color:#065f46;" onclick="addPayment('${x.id}')">پارەدان</button></td></tr>`;
+                    }
+                    html += '</table></div>';
+                }
+            }
+            div.innerHTML = html;
+        }
+
+        function renderReports() {
+            const filter = $("reportFilter") ? $("reportFilter").value : "all";
+            const now = new Date();
+            const sameDay = d => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+            const sameMonth = d => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+            const inPeriod = item => {
+                if(filter === "all") return true;
+                const d = new Date(item.date);
+                return filter === "today" ? sameDay(d) : sameMonth(d);
+            };
+            const sales = db.sales.filter(inPeriod);
+            const purchases = db.purchases.filter(inPeriod);
+            const expenses = db.expenses.filter(inPeriod);
+            const returns = (db.returns || []).filter(inPeriod);
+            const sTot = sales.reduce((s, x) => s + (x.total || 0), 0);
+            const pTot = purchases.reduce((s, x) => s + x.price * x.qty, 0);
+            const eTot = expenses.reduce((s, x) => s + x.amount, 0);
+            const rTot = returns.reduce((s, x) => s + (x.total || 0), 0);
+            let gProf = 0;
+            sales.forEach(s => { (s.items || []).forEach(i => { let pr = product(i.product); gProf += (i.price - (pr ? pr.buy : 0)) * i.qty; }); });
+            const finalSales = sTot - rTot;
+            const finalNet = gProf - eTot;
+            if($("rPurchases")) $("rPurchases").textContent = money(pTot);
+            if($("rSales")) $("rSales").textContent = money(finalSales);
+            if($("rReturns")) $("rReturns").textContent = money(rTot);
+            if($("rGross")) $("rGross").textContent = money(gProf);
+            if($("rNet")) $("rNet").textContent = money(finalNet);
+        }
+
+        function renderAll() {
+            addOptions();
+            renderStock();
+            renderSales();
+            renderPurchases();
+            renderReturns();
+            renderExpenses();
+            renderCustomerLedger();
+            renderReports();
+            renderCartTabs();
+            renderCart();
+            renderReturnCart();
+
+            let sTot = db.sales.reduce((s, x) => s + (x.total || 0), 0);
+            let rTot = (db.returns || []).reduce((s, x) => s + (x.total || 0), 0);
+            let eTot = db.expenses.reduce((s, x) => s + x.amount, 0);
+            let gProf = 0;
+            db.sales.forEach(s => { (s.items || []).forEach(i => { let pr = product(i.product); gProf += (i.price - (pr ? pr.buy : 0)) * i.qty; }); });
+
+            if($("dSales")) $("dSales").textContent = money(sTot - rTot);
+            if($("dGross")) $("dGross").textContent = money(gProf);
+            if($("dReturns")) $("dReturns").textContent = money(rTot);
+            if($("dExpenses")) $("dExpenses").textContent = money(eTot);
+            if($("dNet")) $("dNet").textContent = money(gProf - eTot);
+            if($("dProducts")) $("dProducts").textContent = db.products.length;
+            if($("dDebt")) $("dDebt").textContent = money(db.debts.reduce((sum, d) => sum + d.amount, 0));
+
+            let low = db.products.filter(p => p.qty <= p.min);
+            if($("lowStock")) {
+                let html = "";
+                if(low.length === 0){
+                    html = "<div class='empty'>کۆگا لە بارودۆخێکی باشدایە.</div>";
+                } else {
+                    for(let i=0; i<low.length; i++){
+                        html += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); font-size:14px;"><span>${low[i].name}</span><span class="badge low">${low[i].qty} دانە</span></div>`;
+                    }
+                }
+                $("lowStock").innerHTML = html;
+            }
+        }
+
+        if($("today")) $("today").textContent = new Date().toLocaleDateString("ku-IQ", { year: "numeric", month: "long", day: "numeric" });
+    </script>
+</body>
+</html>
